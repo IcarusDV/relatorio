@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório da Empresa</title>
+
+  <!-- jQuery atualizado-->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  
+  <!-- Seu CSS personalizado -->
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .pagination .page-item {
+      cursor: pointer;
+    }
+
+    /* Esconde o formulário inicialmente */
+    #agendamento-form {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+
+  <div class="container mt-5">
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <img src="img/movyx1.png" alt="Logo da Empresa" class="img-fluid" style="max-width: 150px;">
+      </div>
+      <div class="col-md-8">
+        <h2>Agenda de Relatórios</h2>
+        <p><strong>Agenda:</strong> 12/12/2024</p>
+        <p><strong>E-mail:</strong> contato@empresa.com</p>
+      </div>
+    </div>
+
+    <!-- Filtro de Busca -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <input type="text" id="search" class="form-control" placeholder="Buscar por placa...">
+      </div>
+    </div>
+
+    <!-- Botão para mostrar o formulário de agendamento -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <button id="novo-agendamento" class="btn btn-success">Novo Agendamento</button>
+      </div>
+    </div>
+
+    <!-- Formulário de Cadastro de Agendamento -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <h3>Cadastro de Agendamento</h3>
+        <form id="agendamento-form">
+          <div class="mb-3">
+            <label for="empresa" class="form-label">Empresa</label>
+            <input type="text" class="form-control" id="empresa" required>
+          </div>
+          <div class="mb-3">
+            <label for="relatorio" class="form-label">Relatório</label>
+            <input type="text" class="form-control" id="relatorio" required>
+          </div>
+          <div class="mb-3">
+            <label for="placas" class="form-label">Placas</label>
+            <input type="text" class="form-control" id="placas" required>
+          </div>
+          <div class="mb-3">
+            <label for="inicio" class="form-label">Data Início</label>
+            <input type="date" class="form-control" id="inicio" required>
+          </div>
+          <div class="mb-3">
+            <label for="fim" class="form-label">Data Fim</label>
+            <input type="date" class="form-control" id="fim" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">E-mail</label>
+            <input type="email" class="form-control" id="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-control" id="status" required>
+              <option value="Agendado">Agendado</option>
+              <option value="Executado">Executado</option>
+              <option value="Pendente">Pendente</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Cadastrar Agendamento</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabela de Relatórios -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <h2 class="text-center">Relatório de Agendamento da Empresa</h2>
+        <table class="table table-bordered" id="data-table">
+          <thead class="table-light">
+            <tr>
+              <th>Data de Solicitação</th>
+              <th>Empresa</th>
+              <th>Relatório</th>
+              <th>Placas</th>
+              <th>Data Início</th>
+              <th>Data Fim</th>
+              <th>E-mail</th>
+              <th>Status</th>
+              <th>Data de Envio</th> <!-- Adicionando a coluna para a Data de Envio -->
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dados preenchidos dinamicamente pelo JavaScript -->
+          </tbody>
+        </table>
+        
+        <!-- Paginação -->
+        <div class="pagination">
+          <ul class="pagination-list">
+            <!-- Botões de navegação serão gerados aqui pelo JavaScript -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      { solicitacao: "01/12/2024", empresa: "Empresa A", relatorio: "Relatório 1", placas: "ABC-1234, XYZ-5678", inicio: "01/12/2024", fim: "02/12/2024", email: "empresaA@email.com", status: "Agendado", envio: "02/12/2024" },
+      { solicitacao: "02/12/2024", empresa: "Empresa B", relatorio: "Relatório 2", placas: "DEF-4321", inicio: "02/12/2024", fim: "03/12/2024", email: "empresaB@email.com", status: "Executado", envio: "03/12/2024" },
+      { solicitacao: "03/12/2024", empresa: "Empresa C", relatorio: "Relatório 3", placas: "GHI-8765, JKL-5432", inicio: "03/12/2024", fim: "04/12/2024", email: "empresaC@email.com", status: "Pendente", envio: "N/A" },
+      { solicitacao: "04/12/2024", empresa: "Empresa D", relatorio: "Relatório 4", placas: "MNO-1357", inicio: "04/12/2024", fim: "05/12/2024", email: "empresaD@email.com", status: "Agendado", envio: "05/12/2024" },
+      { solicitacao: "05/12/2024", empresa: "Empresa E", relatorio: "Relatório 5", placas: "PQR-2468", inicio: "05/12/2024", fim: "06/12/2024", email: "empresaE@email.com", status: "Executado", envio: "06/12/2024" },
+    ];
+
+    const rowsPerPage = 10;  // Número de linhas por página
+    let currentPage = 1;
+
+    function renderTable(page, filter = "") {
+      const start = (page - 1) * rowsPerPage;
+      const end = page * rowsPerPage;
+      const filteredData = data.filter(item => item.placas.toLowerCase().includes(filter.toLowerCase()));
+
+      // Limpar o corpo da tabela
+      const tbody = document.querySelector("#data-table tbody");
+      tbody.innerHTML = "";
+
+      // Preencher a tabela com os dados filtrados
+      filteredData.slice(start, end).forEach(item => {
+        const statusClass = item.status === "Executado" ? "bg-danger" : item.status === "Agendado" ? "bg-success" : item.status === "Pendente" ? "bg-warning" : "bg-secondary";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.solicitacao}</td>
+          <td>${item.empresa}</td>
+          <td>${item.relatorio}</td>
+          <td>${item.placas}</td>
+          <td>${item.inicio}</td>
+          <td>${item.fim}</td>
+          <td>${item.email}</td>
+          <td><span class="badge ${statusClass}">${item.status}</span></td>
+          <td>${item.envio}</td> <!-- Exibindo a Data de Envio -->
+        `;
+        tbody.appendChild(row);
+      });
+
+      // Atualizar a paginação
+      renderPagination(filteredData.length, page);
+    }
+
+    function renderPagination(totalItems, page) {
+      const totalPages = Math.ceil(totalItems / rowsPerPage);
+      const paginationList = document.querySelector(".pagination-list");
+      paginationList.innerHTML = "";
+
+      for (let i = 1; i <= totalPages; i++) {
+        const pageItem = document.createElement("li");
+        pageItem.classList.add("page-item");
+        pageItem.classList.toggle("active", i === page);
+        pageItem.innerHTML = `<span class="page-link">${i}</span>`;
+        pageItem.addEventListener("click", () => renderTable(i, document.querySelector("#search").value));
+        paginationList.appendChild(pageItem);
+      }
+    }
+
+    document.querySelector("#search").addEventListener("input", (event) => {
+      renderTable(currentPage, event.target.value);
+    });
+
+    document.querySelector("#novo-agendamento").addEventListener("click", () => {
+      const form = document.querySelector("#agendamento-form");
+      form.style.display = form.style.display === "none" ? "block" : "none";
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderTable(currentPage);
+    });
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+    
+
+    <!--Filtro no Cabeçalho 
+ Filtro no Cabeçalho 
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4 class="mb-3 text-primary">Filtrar Relatório</h4>
+        <form class="d-flex justify-content-between align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Procurar placa...">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select select2" id="placasSelect" multiple>
+                    <option value="ABC-1234">ABC-1234</option>
+                    <option value="XYZ-5678">XYZ-5678</option>
+                    <option value="LMN-9012">LMN-9012</option>
+                    <option value="PQR-3456">PQR-3456</option>
+                    <option value="QQR-2426">QQR-2426</option>
+                    <option value="WST-7656">WST-7656</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" type="button" id="applyFilter">Aplicar Filtro</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+ Relatório de Status-
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4>Relatório de Status</h4>
+        <table class="table table-bordered" id="statusTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Placa</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ABC-1234</td>
+                    <td>12/12/2024</td>
+                    <td><span class="badge bg-success">Agendado</span></td>
+                    <td><button class="btn btn-primary btn-sm">Visualizar</button></td>
+                </tr>
+                <tr>
+                    <td>XYZ-5678</td>
+                    <td>13/12/2024</td>
+                    <td><span class="badge bg-danger">Executado</span></td>
+                    <td><button class="btn btn-primary btn-sm">Visualizar</button></td>
+                </tr>
+                <tr>
+                    <td>ABD-2012</td>
+                    <td>14/12/2024</td>
+                    <td><span class="badge bg-danger">Executado</span></td>
+                    <td><button class="btn btn-primary btn-sm">Visualizar</button></td>
+                </tr>
+                <tr>
+                    <td>QVZ-4267</td>
+                    <td>14/12/2024</td>
+                    <td><span class="badge bg-warning">Pendente</span></td>
+                    <td><button class="btn btn-primary btn-sm">Visualizar</button></td>
+                </tr>
+                <tr>
+                    <td>WWX-6890</td>
+                    <td>14/12/2024</td>
+                    <td><span class="badge bg-warning">Pendente</span></td>
+                    <td><button class="btn btn-primary btn-sm">Visualizar</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+ Relatório de Dados -
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4>Relatório de Dados</h4>
+        <table class="table table-bordered" id="dataTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Placa</th>
+                    <th>Data</th>
+                    <th>Modelo</th>
+                    <th>Proprietário</th>
+                    <th>Telefone</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ABC-1234</td>
+                    <td>12/12/2024</td>
+                    <td>Ford Fiesta</td>
+                    <td>João Silva</td>
+                    <td>(11) 99999-1234</td>
+                </tr>
+                <tr>
+                    <td>XYZ-5678</td>
+                    <td>13/12/2024</td>
+                    <td>Chevrolet Onix</td>
+                    <td>Maria Souza</td>
+                    <td>(11) 98888-5678</td>
+                </tr>
+                <tr>
+                    <td>LMN-9012</td>
+                    <td>14/12/2024</td>
+                    <td>Honda Civic</td>
+                    <td>Pedro Oliveira</td>
+                    <td>(11) 97777-9012</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Inicializa o Select2
+        $('#placasSelect').select2({
+            theme: 'bootstrap',
+            placeholder: 'Selecione as placas...',
+            width: '100%'
+        });
+
+        // Filtragem ao clicar no botão "Aplicar Filtro"
+        $('#applyFilter').on('click', function () {
+            const searchValue = $('#searchInput').val().toLowerCase();
+            const selectedPlates = $('#placasSelect').val() || [];
+
+            // Filtrar tabela de Status
+            filterTable('#statusTable', searchValue, selectedPlates);
+
+            // Filtrar tabela de Dados
+            filterTable('#dataTable', searchValue, selectedPlates);
+        });
+
+        function filterTable(tableId, searchValue, selectedPlates) {
+            const tableRows = $(`${tableId} tbody tr`);
+            tableRows.each(function () {
+                const plate = $(this).find('td').eq(0).text().toLowerCase();
+                const matchesSearch = plate.includes(searchValue);
+                const matchesSelect = selectedPlates.length === 0 || selectedPlates.includes(plate);
+
+                if (matchesSearch && matchesSelect) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    });
+</script>
+
+      
+
+
+     Formulário de Envio por E-mail 
+    <div class="row">
+      <div class="col-md-12">
+        <h4>Enviar Relatório</h4>
+        <form action="enviar_email.php" method="POST">
+          <div class="mb-3">
+            <input type="email" class="form-control" name="email" placeholder="Digite seu e-mail" required>
+          </div>
+          <button type="submit" class="btn btn-success">Enviar Relatório</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+   jQuery 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-KyZXEJ6p3lBzD40Jj32V2/5veTHf0MdoOk4bM6P0h4sbA3dpu2HeY0hvY8lhBPwW" crossorigin="anonymous"></script>
+  
+  < Bootstrap JS 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  < Select2 JS 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  
+  </script>
+</body>
+</html> 
